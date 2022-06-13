@@ -105,6 +105,7 @@ val profileCallback = object : Callback<UserProfile, AuthenticationException> {
         val payload = JSONObject().apply {
             put("token", accessToken)
             put("provider", "auth0:email_password") // Optional
+            put("timestamp", System.currentTimeMillis()) // Optional
             put("associationKey", keyri.getAssociationKey(email)) // Optional
             put("userSignature", keyri.getUserSignature(email, email)) // Optional
         }.toString()
