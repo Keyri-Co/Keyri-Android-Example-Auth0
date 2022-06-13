@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Keyri Android Example Auth0</string>
+    <string name="auth0_example_title">Auth0 Example</string>
+    <string name="auth0">Authenticate with Auth0</string>
+</resources>
