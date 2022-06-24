@@ -94,30 +94,64 @@ WebAuthProvider.login(account)
 Optional. If you want to provide payload with signature of public user ID, add next block:
 
 ```kotlin
-val profileCallback = object : Callback<UserProfile, AuthenticationException> {
+        val profileCallback = object : Callback<UserProfile, AuthenticationException> {
     override fun onFailure(error: AuthenticationException) {
-        // Process error
+        onAuthenticationFailure(error)
     }
 
-    override fun onSuccess(profile: UserProfile) {
-        val email = profile.email
+    override fun onSuccess(result: UserProfile) {
+        val email = result.email
+        val keyri = Keyri()
 
-        val payload = JSONObject().apply {
-            put("token", accessToken)
-            put("provider", "auth0:email_password") // Optional
-            put("timestamp", System.currentTimeMillis()) // Optional
-            put("associationKey", keyri.getAssociationKey(email)) // Optional
-            put("userSignature", keyri.getUserSignature(email, email)) // Optional
+        val tokenData = JSONObject().apply {
+            put("accessToken", credentials.accessToken)
+            put("idToken", credentials.idToken)
+            put("refreshToken", credentials.refreshToken)
+            put("expiresAt", credentials.expiresAt)
+            put("recoveryCode", credentials.recoveryCode)
+            put("scope", credentials.scope)
+            put("type", credentials.type)
+        }
+
+        val userProfileData = JSONObject().apply {
+            put("email", result.email)
+            put("createdAt", result.createdAt?.time)
+            put("name", result.name)
+            put("familyName", result.familyName)
+            put("givenName", result.givenName)
+            put("isEmailVerified", result.isEmailVerified)
+            put("nickname", result.nickname)
+            put("pictureURL", result.pictureURL)
+            put("id", result.getId())
+        }
+
+        val data = JSONObject().apply {
+            put("token", tokenData)
+            put("userProfile", userProfileData)
+        }
+
+        val signingData = JSONObject().apply {
+            put("timestamp", System.currentTimeMillis())
+            put("email", email)
+            put("uid", result.getId())
         }.toString()
 
-        // See Keyri authorization section
+        val signature = keyri.getUserSignature(email, signingData)
+
+        val payload = JSONObject().apply {
+            put("data", data)
+            put("signingData", signingData)
+            put("userSignature", signature) // Optional
+            put("associationKey", keyri.getAssociationKey(email)) // Optional
+        }.toString()
+
         // Public user ID (email) is optional
         keyriAuth(email, payload)
     }
 }
 
 AuthenticationAPIClient(account)
-    .userInfo(accessToken)
+    .userInfo(credentials.accessToken)
     .start(profileCallback)
 ```
 
