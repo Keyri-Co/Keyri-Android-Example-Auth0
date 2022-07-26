@@ -46,7 +46,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     // Keyri
-    implementation 'com.github.Keyri-Co:keyri-android-whitelabel-sdk:0.9.6'
+    implementation "com.github.Keyri-Co.keyri-android-whitelabel-sdk:keyrisdk:1.0.14"
+    implementation "com.github.Keyri-Co.keyri-android-whitelabel-sdk:scanner:1.0.14"
 
     // Auth0
     implementation "com.auth0.android:auth0:2.7.0"

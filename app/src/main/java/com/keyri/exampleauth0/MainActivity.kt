@@ -18,7 +18,7 @@ import com.auth0.android.result.Credentials
 import com.auth0.android.result.UserProfile
 import com.keyri.exampleauth0.databinding.ActivityMainBinding
 import com.keyrico.keyrisdk.Keyri
-import com.keyrico.keyrisdk.ui.auth.AuthWithScannerActivity
+import com.keyrico.scanner.AuthWithScannerActivity
 import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
