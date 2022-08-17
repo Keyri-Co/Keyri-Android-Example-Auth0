@@ -19,6 +19,7 @@ import com.auth0.android.result.UserProfile
 import com.keyri.exampleauth0.databinding.ActivityMainBinding
 import com.keyrico.keyrisdk.Keyri
 import com.keyrico.scanner.AuthWithScannerActivity
+import com.keyrico.scanner.easyKeyriAuth
 import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
@@ -109,13 +110,19 @@ class MainActivity : AppCompatActivity() {
                     put("uid", result.getId())
                 }.toString()
 
-                val signature = keyri.getUserSignature(email, signingData)
+                val signature = email?.let {
+                    keyri.generateUserSignature(it, signingData)
+                } ?: keyri.generateUserSignature(data = signingData)
+
+                val associationKey = email?.let {
+                    keyri.getAssociationKey(it)
+                } ?: keyri.getAssociationKey()
 
                 val payload = JSONObject().apply {
                     put("data", data)
                     put("signingData", signingData)
                     put("userSignature", signature) // Optional
-                    put("associationKey", keyri.getAssociationKey(email)) // Optional
+                    put("associationKey", associationKey) // Optional
                 }.toString()
 
                 // Public user ID (email) is optional
@@ -129,13 +136,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun keyriAuth(publicUserId: String?, payload: String) {
-        val intent = Intent(this, AuthWithScannerActivity::class.java).apply {
-            putExtra(AuthWithScannerActivity.APP_KEY, "SQzJ5JLT4sEE1zWk1EJE1ZGNfwpvnaMP")
-            putExtra(AuthWithScannerActivity.USERNAME, publicUserId)
-            putExtra(AuthWithScannerActivity.PAYLOAD, payload)
-        }
-
-        easyKeyriAuthLauncher.launch(intent)
+        easyKeyriAuth(
+            this,
+            easyKeyriAuthLauncher,
+            "SQzJ5JLT4sEE1zWk1EJE1ZGNfwpvnaMP",
+            payload,
+            publicUserId
+        )
     }
 
     private fun onAuthenticationFailure(error: Throwable) {
