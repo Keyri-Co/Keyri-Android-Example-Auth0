@@ -3,7 +3,6 @@ package com.keyri.exampleauth0
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
@@ -18,7 +17,6 @@ import com.auth0.android.result.Credentials
 import com.auth0.android.result.UserProfile
 import com.keyri.exampleauth0.databinding.ActivityMainBinding
 import com.keyrico.keyrisdk.Keyri
-import com.keyrico.scanner.AuthWithScannerActivity
 import com.keyrico.scanner.easyKeyriAuth
 import org.json.JSONObject
 
