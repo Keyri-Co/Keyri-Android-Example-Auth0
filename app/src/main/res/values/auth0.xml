@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="com_auth0_client_id">nvZ8PrK3KzfjgrVqDfJM3SdJ76Il3UW9</string>
-    <string name="com_auth0_domain">dev-n94dxv8u.eu.auth0.com</string>
+    <string name="com_auth0_client_id">0DclEy2Fgpc2raVnIpxpzosn5Q5LXeSR</string>
+    <string name="com_auth0_domain">keyri.us.auth0.com</string>
     <string name="com_auth0_scheme">demo</string>
 </resources>

@@ -19,10 +19,13 @@ import com.keyri.exampleauth0.databinding.ActivityMainBinding
 import com.keyrico.keyrisdk.Keyri
 import com.keyrico.scanner.easyKeyriAuth
 import org.json.JSONObject
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
+    private var isSessionExtension = true
 
     private val easyKeyriAuthLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
@@ -39,6 +42,13 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
+
+        binding.switchSession.setOnCheckedChangeListener { _, isChecked ->
+            isSessionExtension = !isChecked
+
+            binding.tvSessionExtension.isEnabled = !isChecked
+            binding.tvServerSide.isEnabled = isChecked
+        }
 
         binding.bAuth0.setOnClickListener {
             authWithAuth0()
@@ -75,55 +85,67 @@ class MainActivity : AppCompatActivity() {
                 val email = result.email
                 val keyri = Keyri()
 
-                val tokenData = JSONObject().apply {
-                    put("accessToken", credentials.accessToken)
-                    put("idToken", credentials.idToken)
-                    put("refreshToken", credentials.refreshToken)
-                    put("expiresAt", credentials.expiresAt)
-                    put("recoveryCode", credentials.recoveryCode)
-                    put("scope", credentials.scope)
-                    put("type", credentials.type)
+                val payload = if (!isSessionExtension) {
+                    val tokenData = JSONObject().apply {
+                        put("accessToken", credentials.accessToken)
+                        put("idToken", credentials.idToken)
+                        put("refreshToken", credentials.refreshToken)
+                        put("expiresAt", credentials.expiresAt)
+                        put("recoveryCode", credentials.recoveryCode)
+                        put("scope", credentials.scope)
+                        put("type", credentials.type)
+                    }
+
+                    val userProfileData = JSONObject().apply {
+                        put("email", result.email)
+                        put("createdAt", result.createdAt?.time)
+                        put("name", result.name)
+                        put("familyName", result.familyName)
+                        put("givenName", result.givenName)
+                        put("isEmailVerified", result.isEmailVerified)
+                        put("nickname", result.nickname)
+                        put("pictureURL", result.pictureURL)
+                        put("id", result.getId())
+                    }
+
+                    val data = JSONObject().apply {
+                        put("token", tokenData)
+                        put("userProfile", userProfileData)
+                    }
+
+                    val signingData = JSONObject().apply {
+                        put("timestamp", System.currentTimeMillis())
+                        put("email", email)
+                        put("uid", result.getId())
+                    }.toString()
+
+                    val signature = email?.let {
+                        keyri.generateUserSignature(it, signingData)
+                    } ?: keyri.generateUserSignature(data = signingData)
+
+                    val associationKey = email?.let {
+                        keyri.getAssociationKey(it)
+                    } ?: keyri.getAssociationKey()
+
+                    JSONObject().apply {
+                        put("data", data)
+                        put("signingData", signingData)
+                        put("userSignature", signature) // Optional
+                        put("associationKey", associationKey) // Optional
+                    }.toString()
+                } else {
+                    val associationKey = keyri.getAssociationKey(requireNotNull(email))
+                    val timestampNonce = "${System.currentTimeMillis()}_${Random.nextInt()}"
+                    val signature = keyri.generateUserSignature(email, timestampNonce)
+
+                    JSONObject().apply {
+                        put("nickname", result.nickname)
+                        put("timestamp_nonce", timestampNonce)
+                        put("userSignature", signature)
+                        put("associationKey ", associationKey)
+                    }.toString()
                 }
 
-                val userProfileData = JSONObject().apply {
-                    put("email", result.email)
-                    put("createdAt", result.createdAt?.time)
-                    put("name", result.name)
-                    put("familyName", result.familyName)
-                    put("givenName", result.givenName)
-                    put("isEmailVerified", result.isEmailVerified)
-                    put("nickname", result.nickname)
-                    put("pictureURL", result.pictureURL)
-                    put("id", result.getId())
-                }
-
-                val data = JSONObject().apply {
-                    put("token", tokenData)
-                    put("userProfile", userProfileData)
-                }
-
-                val signingData = JSONObject().apply {
-                    put("timestamp", System.currentTimeMillis())
-                    put("email", email)
-                    put("uid", result.getId())
-                }.toString()
-
-                val signature = email?.let {
-                    keyri.generateUserSignature(it, signingData)
-                } ?: keyri.generateUserSignature(data = signingData)
-
-                val associationKey = email?.let {
-                    keyri.getAssociationKey(it)
-                } ?: keyri.getAssociationKey()
-
-                val payload = JSONObject().apply {
-                    put("data", data)
-                    put("signingData", signingData)
-                    put("userSignature", signature) // Optional
-                    put("associationKey", associationKey) // Optional
-                }.toString()
-
-                // Public user ID (email) is optional
                 keyriAuth(email, payload)
             }
         }
