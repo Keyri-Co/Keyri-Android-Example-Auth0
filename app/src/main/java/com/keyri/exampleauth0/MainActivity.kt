@@ -134,9 +134,15 @@ class MainActivity : AppCompatActivity() {
                         put("associationKey", associationKey) // Optional
                     }.toString()
                 } else {
-                    val associationKey = keyri.getAssociationKey(requireNotNull(email))
                     val timestampNonce = "${System.currentTimeMillis()}_${Random.nextInt()}"
-                    val signature = keyri.generateUserSignature(email, timestampNonce)
+
+                    val signature = email?.let {
+                        keyri.generateUserSignature(it, timestampNonce)
+                    } ?: keyri.generateUserSignature(data = timestampNonce)
+
+                    val associationKey = email?.let {
+                        keyri.getAssociationKey(it)
+                    } ?: keyri.getAssociationKey()
 
                     JSONObject().apply {
                         put("nickname", result.nickname)
