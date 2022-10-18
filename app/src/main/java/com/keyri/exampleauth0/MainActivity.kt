@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
 
             override fun onSuccess(result: UserProfile) {
                 val email = result.email
-                val keyri = Keyri()
+                val keyri = Keyri(this@MainActivity)
 
                 val payload = if (!isSessionExtension) {
                     val tokenData = JSONObject().apply {
